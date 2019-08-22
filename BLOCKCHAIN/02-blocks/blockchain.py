@@ -4,40 +4,55 @@ import json
 import time
 
 
-
 class Blockchain(object):
 
     def __init__(self):
         self.chain = []
-        self.memPool = []
-        
+        self.memPool = [ ]
+
+        self.hashs = []        
+        self.createGenesisBlock()
+
 
     def createGenesisBlock(self):
         self.createBlock()
 
     def createBlock(self, nonce=0, previousHash=0):
-        # Implemente aqui o método para retornar um bloco (formato de dicionário)
         # Lembre que o hash do bloco anterior é o hash na verdade do CABEÇALHO do bloco anterior.
+
+        
         if(len(self.chain)==0):
-                    newBlock = dict(
-                            index=0, 
-                            timestamp=(int(time.time())), 
-                            nonce=0, 
-                            merkleRoot=0, 
-                            previousHash= 0,
-                            transactions= 0)
 
+            #pool = self.memPool.copy()
+            #self.memPool.clear()
+
+            Block = dict(
+            index=0,
+            timestamp=(int(time.time())),
+            nonce=0,
+            merkleRoot=0,
+            previousHash=0,
+            transactions=self.memPool)
         else:
-                    newBlock = dict(
-                            index=(len(self.chain))+1, 
-                            timestamp=(int(time.time())), 
-                            nonce=0, 
-                            merkleRoot=0, 
-                            previousHash= self.generateHash(self.chain[-1]),
-                            transactions=self.memPool)
-            
+            header = self.chain[-1].copy()
+            header.pop("transactions")
+            previousHash2 = dict(index=(len(self.chain)-1), hash = self.generateHash(header))
+            previousHash = self.generateHash(header)
+            self.hashs.append(previousHash2)
 
-        self.chain.append(newBlock)
+            pool = self.memPool.copy()
+            self.memPool.clear()
+
+            Block = dict(
+            index=(len(self.chain)),
+            timestamp=(int(time.time())),
+            nonce=0,
+            merkleRoot=0,
+            previousHash= previousHash,
+            transactions=pool)
+
+        self.chain.append(Block)
+
 
 
     @staticmethod
@@ -46,13 +61,17 @@ class Blockchain(object):
         return hashlib.sha256(blkSerial).hexdigest()
 
     def printChain(self):
+        for i in self.hashs:
+            print(json.dumps(i,indent = 4, sort_keys=True ))            
         for i in self.chain:
-            print(json.dumps(i, sort_keys=True).encode())
-
-        for i in self.chain:
+            print(json.dumps(i,indent = 4, sort_keys=True ))
 
 
-# Teste
+
 blockchain = Blockchain()
-for x in range(0, 3): blockchain.createBlock()
+
+
+
+for x in range(1, 6):
+    blockchain.createBlock()
 blockchain.printChain()
